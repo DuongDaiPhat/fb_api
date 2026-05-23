@@ -2,6 +2,10 @@ server:
   port: ${SERVER_PORT:3000}
 
 spring:
+  servlet:
+    multipart:
+      max-file-size: 200MB
+      max-request-size: 200MB
   application:
     name: backend-api
   datasource:
@@ -26,7 +30,7 @@ springdoc:
 facebook:
   page-access-token: ${PAGE_ACCESS_TOKEN:}
   page-id: ${PAGE_ID:me}
-  graph-api-url: https://graph.facebook.com/v19.0
+  graph-api-url: https://graph.facebook.com/v25.0
 
 cloudinary:
   cloud-name: ${CLOUDINARY_CLOUD_NAME:}
