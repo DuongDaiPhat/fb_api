@@ -175,4 +175,86 @@ public class FacebookApiService {
         log.error("Fallback triggered for getComments: {}", t.getMessage());
         throw new FacebookApiException("Facebook service is temporarily unavailable. Please try again later.", "503");
     }
+
+    @CircuitBreaker(name = "facebookApi", fallbackMethod = "fallbackReplyToComment")
+    @Retry(name = "facebookApi")
+    public Object replyToComment(String commentId, String message) {
+        log.info("Replying to comment {}: {}", commentId, message);
+        try {
+            return webClient.post()
+                    .uri(uriBuilder -> uriBuilder
+                            .path("/{comment-id}/comments")
+                            .queryParam("access_token", pageAccessToken)
+                            .queryParam("message", message)
+                            .build(commentId))
+                    .retrieve()
+                    .bodyToMono(Object.class)
+                    .doOnSuccess(res -> log.info("Successfully replied to comment"))
+                    .block();
+        } catch (WebClientResponseException e) {
+            handleException(e);
+            return null;
+        }
+    }
+
+    public Object fallbackReplyToComment(String commentId, String message, Throwable t) {
+        log.error("Fallback triggered for replyToComment on {}: {}", commentId, t.getMessage());
+        return null;
+    }
+
+    @CircuitBreaker(name = "facebookApi", fallbackMethod = "fallbackHideComment")
+    @Retry(name = "facebookApi")
+    public Object hideComment(String commentId) {
+        log.info("Hiding comment {}", commentId);
+        try {
+            return webClient.post()
+                    .uri(uriBuilder -> uriBuilder
+                            .path("/{comment-id}")
+                            .queryParam("access_token", pageAccessToken)
+                            .queryParam("is_hidden", "true")
+                            .build(commentId))
+                    .retrieve()
+                    .bodyToMono(Object.class)
+                    .doOnSuccess(res -> log.info("Successfully hid comment"))
+                    .block();
+        } catch (WebClientResponseException e) {
+            handleException(e);
+            return null;
+        }
+    }
+
+    public Object fallbackHideComment(String commentId, Throwable t) {
+        log.error("Fallback triggered for hideComment on {}: {}", commentId, t.getMessage());
+        return null;
+    }
+
+    @CircuitBreaker(name = "facebookApi", fallbackMethod = "fallbackSendPrivateMessage")
+    @Retry(name = "facebookApi")
+    public Object sendPrivateMessage(String recipientId, String messageText) {
+        log.info("Sending private message to {}", recipientId);
+        try {
+            Map<String, Object> body = Map.of(
+                "recipient", Map.of("id", recipientId),
+                "message", Map.of("text", messageText)
+            );
+            return webClient.post()
+                    .uri(uriBuilder -> uriBuilder
+                            .path("/me/messages")
+                            .queryParam("access_token", pageAccessToken)
+                            .build())
+                    .bodyValue(body)
+                    .retrieve()
+                    .bodyToMono(Object.class)
+                    .doOnSuccess(res -> log.info("Successfully sent private message"))
+                    .block();
+        } catch (WebClientResponseException e) {
+            handleException(e);
+            return null;
+        }
+    }
+
+    public Object fallbackSendPrivateMessage(String recipientId, String messageText, Throwable t) {
+        log.error("Fallback triggered for sendPrivateMessage to {}: {}", recipientId, t.getMessage());
+        return null;
+    }
 }

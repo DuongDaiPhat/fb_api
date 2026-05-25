@@ -21,6 +21,11 @@ services:
             KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
             KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
             KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+        healthcheck:
+            test: [ "CMD", "kafka-topics", "--bootstrap-server", "localhost:9092", "--list" ]
+            interval: 10s
+            timeout: 5s
+            retries: 5
     # -- Kafka UI --
     kafka-ui:
         image: provectuslabs/kafka-ui:latest
@@ -90,7 +95,8 @@ services:
         ports:
             - "3001:3001"
         depends_on:
-            - kafka
+            kafka:
+                condition: service_healthy
         environment:
             - PORT=3001
             - KAFKA_BROKERS=kafka:9092
@@ -102,9 +108,14 @@ services:
             - "3002:3002"
         depends_on:
             - kafka
+            - postgres
+        env_file:
+            - .env
         environment:
             - PORT=3002
-            - KAFKA_BROKERS=kafka:9092  
+            - KAFKA_BROKERS=kafka:9092
+            - DB_HOST=postgres
+
     
     backend-api:
         build: ./fb_api/services/backend-api
