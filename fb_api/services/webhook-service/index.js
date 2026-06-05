@@ -148,6 +148,11 @@ app.post('/webhook', verifyFacebookSignature, (req, res) => {
               const commentText = val.message || '';
               const senderId = val.from ? val.from.id : (val.sender_id || val.from_id || 'unknown');
               
+              if (String(senderId) === String(entry.id)) {
+                console.log(`[IGNORE] Ignored self-comment from page ${entry.id}`);
+                continue;
+              }
+
               events.push({
                 event_id: val.comment_id || `${entry.id}_comment_${Date.now()}`,
                 source: 'comment',
@@ -168,6 +173,11 @@ app.post('/webhook', verifyFacebookSignature, (req, res) => {
             const messageText = msg.message.text || '';
             const senderId = msg.sender ? msg.sender.id : 'unknown';
             
+            if (String(senderId) === String(entry.id)) {
+              console.log(`[IGNORE] Ignored self-message from page ${entry.id}`);
+              continue;
+            }
+
             events.push({
               event_id: msg.message.mid || `${entry.id}_msg_${Date.now()}`,
               source: 'message',

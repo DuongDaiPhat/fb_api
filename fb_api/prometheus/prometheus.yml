@@ -1,22 +1,16 @@
 global:
   scrape_interval: 15s
   evaluation_interval: 15s
+
 alerting:
   alertmanagers:
     - static_configs:
-      - targets:
-        - alertmanager:9093
+        - targets: ['alertmanager:9093']
 
 rule_files:
-  - "alert.rules.yml"
+  - '/etc/prometheus/alert.rules.yml'
 
 scrape_configs:
-  # Scrape metric của chính Prometheus
-  - job_name: "prometheus"
+  - job_name: 'kafka-exporter'
     static_configs:
-      - targets: ["localhost:9090"]
-
-  # Scrape metric Kafka từ kafka-exporter
-  - job_name: "kafka"
-    static_configs:
-      - targets: ["kafka-exporter:9308"]
+      - targets: ['kafka-exporter:9308']

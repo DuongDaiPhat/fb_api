@@ -406,6 +406,18 @@ def kafka_consumer_loop(stop_event):
                     consumer.commit(msg, asynchronous=False)
                     continue
 
+                # 0. Failsafe: Ignore if message is our own automated reply
+                auto_replies = [
+                    "Cảm ơn bạn! Bạn check inbox Page để shop gửi thông tin và tư vấn chi tiết cho mình nhé!",
+                    "Cảm ơn bạn đã phản hồi tích cực! Shop rất vui được phục vụ bạn.",
+                    "Dạ shop rất xin lỗi bạn vì trải nghiệm chưa tốt này. Shop sẽ liên hệ hỗ trợ bạn ngay lập tức ạ!"
+                ]
+                if message and any(reply in message for reply in auto_replies):
+                    logger.info(f"[FAILSAFE] Ignored event {event_id} because it matches our auto-reply templates (caught old queue loop).")
+                    consumer.commit(msg, asynchronous=False)
+                    continue
+
+
                 # 1. Idempotency Check
                 if check_event_exists(event_id):
                     logger.info(f"[KAFKA_CONSUMER] Deduplication triggered. Event {event_id} already processed. Skipping.")

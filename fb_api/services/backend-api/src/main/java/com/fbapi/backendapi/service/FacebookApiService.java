@@ -54,7 +54,6 @@ public class FacebookApiService {
     }
 
     @CircuitBreaker(name = "facebookApi", fallbackMethod = "fallbackCreatePost")
-    @Retry(name = "facebookApi")
     public Object createPost(PostRequest request) {
         log.info("Sending request to Facebook API to create post. Content length: {}",
                 request.getMessage() != null ? request.getMessage().length() : 0);
@@ -177,7 +176,6 @@ public class FacebookApiService {
     }
 
     @CircuitBreaker(name = "facebookApi", fallbackMethod = "fallbackReplyToComment")
-    @Retry(name = "facebookApi")
     public Object replyToComment(String commentId, String message) {
         log.info("Replying to comment {}: {}", commentId, message);
         try {
@@ -199,11 +197,10 @@ public class FacebookApiService {
 
     public Object fallbackReplyToComment(String commentId, String message, Throwable t) {
         log.error("Fallback triggered for replyToComment on {}: {}", commentId, t.getMessage());
-        return null;
+        throw new FacebookApiException("Facebook service is temporarily unavailable. Please try again later.", "503");
     }
 
     @CircuitBreaker(name = "facebookApi", fallbackMethod = "fallbackHideComment")
-    @Retry(name = "facebookApi")
     public Object hideComment(String commentId) {
         log.info("Hiding comment {}", commentId);
         try {
@@ -225,11 +222,10 @@ public class FacebookApiService {
 
     public Object fallbackHideComment(String commentId, Throwable t) {
         log.error("Fallback triggered for hideComment on {}: {}", commentId, t.getMessage());
-        return null;
+        throw new FacebookApiException("Facebook service is temporarily unavailable. Please try again later.", "503");
     }
 
     @CircuitBreaker(name = "facebookApi", fallbackMethod = "fallbackSendPrivateMessage")
-    @Retry(name = "facebookApi")
     public Object sendPrivateMessage(String recipientId, String messageText) {
         log.info("Sending private message to {}", recipientId);
         try {
@@ -255,6 +251,6 @@ public class FacebookApiService {
 
     public Object fallbackSendPrivateMessage(String recipientId, String messageText, Throwable t) {
         log.error("Fallback triggered for sendPrivateMessage to {}: {}", recipientId, t.getMessage());
-        return null;
+        throw new FacebookApiException("Facebook service is temporarily unavailable. Please try again later.", "503");
     }
 }
