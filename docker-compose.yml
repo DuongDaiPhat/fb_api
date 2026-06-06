@@ -105,9 +105,12 @@ services:
         depends_on:
             kafka:
                 condition: service_healthy
+        env_file:
+            - .env
         environment:
             - PORT=3001
             - KAFKA_BROKERS=kafka:9092
+            
     
     core-service:
         build: ./fb_api/services/core-service

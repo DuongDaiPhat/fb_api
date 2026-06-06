@@ -1,8 +1,8 @@
 global:
   smtp_smarthost: 'smtp.gmail.com:587'
   smtp_from: 'alert-system@yourdomain.com'
-  smtp_auth_username: 'your-email@gmail.com'
-  smtp_auth_password: 'your-app-password'
+  smtp_auth_username: 'duongphat521@gmail.com'
+  smtp_auth_password: 'jmbj dknp dubj itfe'
   smtp_require_tls: true
 
 route:
